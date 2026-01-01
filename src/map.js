@@ -35,8 +35,9 @@ export function loadGoogleMapsScript(key) {
 export function initMap(container) {
     console.log("Initializing 3D Map...");
     map = new google.maps.Map(container, {
-        center: { lat: 20, lng: 0 },
-        zoom: 2,
+        center: { lat: 30, lng: -40 },
+        zoom: 3,
+        minZoom: 2, // Prevent zooming out too far
         mapId: "DEMO_MAP_ID",
         mapTypeId: google.maps.MapTypeId.SATELLITE,
         tilt: 45,
@@ -219,10 +220,14 @@ function calculateZoomForBounds(bounds, mapDiv) {
     const mapHeight = mapDiv.offsetHeight;
     const mapWidth = mapDiv.offsetWidth;
 
-    // Account for padding (100px on each side)
-    const padding = 200;
-    const effectiveHeight = mapHeight - padding;
-    const effectiveWidth = mapWidth - padding;
+    // Account for padding - extra on left side for UI overlay
+    const leftPadding = 1000;
+    const rightPadding = 100;
+    const topPadding = 100;
+    const bottomPadding = 100;
+
+    const effectiveHeight = mapHeight - topPadding - bottomPadding;
+    const effectiveWidth = mapWidth - leftPadding - rightPadding;
 
     const latZoom = zoom(effectiveHeight, WORLD_DIM.height, latFraction);
     const lngZoom = zoom(effectiveWidth, WORLD_DIM.width, lngFraction);
@@ -235,14 +240,15 @@ function animateCamera(origin, dest) {
     bounds.extend(origin);
     bounds.extend(dest);
 
-    // Add intermediate points for geodesic curve
-    const originLatLng = new google.maps.LatLng(origin);
-    const destLatLng = new google.maps.LatLng(dest);
-    if (google.maps.geometry && google.maps.geometry.spherical) {
-        [0.25, 0.5, 0.75].forEach(frac => {
-            bounds.extend(google.maps.geometry.spherical.interpolate(originLatLng, destLatLng, frac));
-        });
-    }
+    // Calculate rough distance to determine padding
+    let lngDiff = Math.abs(dest.lng - origin.lng);
+    if (lngDiff > 180) lngDiff = 360 - lngDiff;
+    const latDiff = Math.abs(dest.lat - origin.lat);
+    const roughDistance = Math.sqrt(lngDiff * lngDiff + latDiff * latDiff);
+
+    // Use smaller padding for long-distance flights (zoom in more)
+    const basePadding = roughDistance > 100 ? 40 : 80;
+    const leftPadding = roughDistance > 100 ? 350 : 400;
 
     // Capture START State
     const startState = {
@@ -252,21 +258,66 @@ function animateCamera(origin, dest) {
         heading: map.getHeading()
     };
 
-    // Calculate TARGET State mathematically (no map movement!)
-    const targetCenter = bounds.getCenter();
-    const mapDiv = map.getDiv();
-    const targetZoom = calculateZoomForBounds(bounds, mapDiv);
+    // Get target state from fitBounds by applying it and capturing result
+    map.fitBounds(bounds, {
+        top: basePadding,
+        right: basePadding,
+        bottom: basePadding,
+        left: leftPadding
+    });
 
+    // Ensure minimum zoom level of 2 (don't zoom out too far)
+    if (map.getZoom() < 2) {
+        map.setZoom(2);
+    }
+
+    // Capture the target state that fitBounds calculated
     const targetState = {
-        center: targetCenter,
-        zoom: targetZoom,
+        center: map.getCenter(),
+        zoom: map.getZoom(),
         tilt: 0,
         heading: 0
     };
 
+    // Check if the distance is too far - use different animation strategy
+    const startLat = startState.center.lat();
+    const startLng = startState.center.lng();
+    const targetLat = targetState.center.lat();
+    const targetLng = targetState.center.lng();
+
+    // Calculate rough distance for animation strategy (in degrees)
+    let animLngDiff = Math.abs(targetLng - startLng);
+    if (animLngDiff > 180) animLngDiff = 360 - animLngDiff; // Handle wrap-around
+    const animLatDiff = Math.abs(targetLat - startLat);
+    const totalDiff = Math.sqrt(animLngDiff * animLngDiff + animLatDiff * animLatDiff);
+
+    // For large moves (>60 degrees), first zoom out then zoom in
+    const isLargeMove = totalDiff > 60;
+    const midZoom = isLargeMove ? 2 : null; // Zoom level for the "peak" of the arc
+
+    // Reset back to start position for animation
+    map.moveCamera({
+        center: startState.center,
+        zoom: startState.zoom,
+        tilt: startState.tilt,
+        heading: startState.heading
+    });
+
     // Animate from START to TARGET
     const startTime = performance.now();
-    const duration = 2500;
+    const duration = isLargeMove ? 3000 : 2500; // Longer duration for large moves
+
+    // Calculate the shortest path for longitude (handle wrap-around at ±180)
+    let targetLngForAnim = targetState.center.lng();
+    const startLngForAnim = startState.center.lng();
+    let lngDiffForAnim = targetLngForAnim - startLngForAnim;
+
+    // If the difference is more than 180, go the other way
+    if (lngDiffForAnim > 180) {
+        targetLngForAnim -= 360;
+    } else if (lngDiffForAnim < -180) {
+        targetLngForAnim += 360;
+    }
 
     function animate(currentTime) {
         const elapsed = currentTime - startTime;
@@ -277,10 +328,12 @@ function animateCamera(origin, dest) {
 
         if (progress < 1) {
             const curLat = startState.center.lat() + (targetState.center.lat() - startState.center.lat()) * ease;
-            const curLng = startState.center.lng() + (targetState.center.lng() - startState.center.lng()) * ease;
-            const curZoom = startState.zoom + (targetState.zoom - startState.zoom) * ease;
+            const curLng = startLngForAnim + (targetLngForAnim - startLngForAnim) * ease;
             const curTilt = startState.tilt + (targetState.tilt - startState.tilt) * ease;
             const curHeading = startState.heading + (targetState.heading - startState.heading) * ease;
+
+            // Simple smooth zoom interpolation for all moves
+            const curZoom = startState.zoom + (targetState.zoom - startState.zoom) * ease;
 
             map.moveCamera({
                 center: { lat: curLat, lng: curLng },
