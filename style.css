@@ -230,59 +230,7 @@ button:hover {
     color: var(--text-muted);
 }
 
-/* Google Maps InfoWindow Overrides */
-.gm-style-iw-ch {
-    display: none !important;
-}
-
-.gm-style-iw button.gm-ui-hover-effect {
-    display: none !important;
-}
-
-.gm-style-iw-d {
-    overflow: visible !important;
-    background: transparent !important;
-}
-
-.gm-style-iw {
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    overflow: visible !important;
-    border: none !important;
-}
-
-.gm-style-iw-c {
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    overflow: visible !important;
-    border: none !important;
-    border-radius: 0 !important;
-}
-
-.gm-style-iw-tc {
-    display: none !important;
-}
-
-.gm-style-iw-t::after {
-    display: none !important;
-}
-
-/* Remove any white backgrounds from InfoWindow containers */
-.gm-style .gm-style-iw-c {
-    background-color: transparent !important;
-}
-
-.gm-style .gm-style-iw-d {
-    background-color: transparent !important;
-}
-
-.gm-style .gm-style-iw-t {
-    background-color: transparent !important;
-}
-
-/* Remove white backgrounds from InfoWindow wrapper only */
+/* Google Maps InfoWindow Overrides - Consolidated */
 .gm-style-iw,
 .gm-style-iw-c,
 .gm-style-iw-d,
@@ -291,33 +239,18 @@ button:hover {
     background-color: transparent !important;
     box-shadow: none !important;
     border: none !important;
-}
-
-/* Target the specific white wrapper */
-.gm-style .gm-style-iw-a {
-    background: transparent !important;
-}
-
-div[style*="background-color: white"],
-div[style*="background-color: rgb(255, 255, 255)"],
-div[style*="background: white"],
-div[style*="background: rgb(255, 255, 255)"] {
-    background: transparent !important;
-    background-color: transparent !important;
-}
-
-/* Complete reset for InfoWindow containers */
-.gm-style-iw,
-.gm-style-iw-c,
-.gm-style-iw-d,
-.gm-style-iw-t {
+    padding: 0 !important;
     margin: 0 !important;
-    padding: 0 !important;
     max-width: none !important;
     max-height: none !important;
+    overflow: visible !important;
 }
 
-/* Hide the white background wrapper that Google adds */
+/* Hide default InfoWindow elements */
+.gm-style-iw-ch,
+.gm-style-iw button.gm-ui-hover-effect,
+.gm-style-iw-tc,
+.gm-style-iw-t::after,
 .gm-style-iw-c::before,
 .gm-style-iw-c::after,
 .gm-style-iw-d::before,

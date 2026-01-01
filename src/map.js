@@ -97,32 +97,6 @@ function createLabelContent(airport) {
     `;
 }
 
-/**
- * Cleans up InfoWindow styling by removing white backgrounds
- * Called after InfoWindow DOM is ready
- */
-function cleanupInfoWindowStyles() {
-    // Target all InfoWindow wrapper elements and remove their backgrounds
-    const iwContainers = document.querySelectorAll('.gm-style-iw, .gm-style-iw-c, .gm-style-iw-d, .gm-style-iw-t');
-    iwContainers.forEach(el => {
-        el.style.background = 'transparent';
-        el.style.backgroundColor = 'transparent';
-        el.style.boxShadow = 'none';
-        el.style.border = 'none';
-        el.style.padding = '0';
-        el.style.margin = '0';
-    });
-
-    // Also target any child divs that might have white backgrounds
-    const allDivs = document.querySelectorAll('.gm-style-iw div, .gm-style-iw-c div, .gm-style-iw-d div');
-    allDivs.forEach(el => {
-        const bg = window.getComputedStyle(el).backgroundColor;
-        if (bg === 'rgb(255, 255, 255)' || bg === 'white') {
-            el.style.backgroundColor = 'transparent';
-        }
-    });
-}
-
 export function drawPath(originAirport, destAirport) {
     if (!map) return;
 
@@ -189,52 +163,6 @@ export function drawPath(originAirport, destAirport) {
     return Math.round(distanceMeters / 1000);
 }
 
-/**
- * Calculate the appropriate zoom level to fit bounds in the viewport
- */
-function calculateZoomForBounds(bounds, mapDiv) {
-    const WORLD_DIM = { height: 256, width: 256 };
-    const ZOOM_MAX = 21;
-
-    function latRad(lat) {
-        const sin = Math.sin(lat * Math.PI / 180);
-        const radX2 = Math.log((1 + sin) / (1 - sin)) / 2;
-        return Math.max(Math.min(radX2, Math.PI), -Math.PI) / 2;
-    }
-
-    function zoom(mapPx, worldPx, fraction) {
-        return Math.floor(Math.log(mapPx / worldPx / fraction) / Math.LN2);
-    }
-
-    const ne = bounds.getNorthEast();
-    const sw = bounds.getSouthWest();
-
-    const latFraction = (latRad(ne.lat()) - latRad(sw.lat())) / Math.PI;
-
-    let lngDiff = ne.lng() - sw.lng();
-    if (lngDiff < 0) {
-        lngDiff += 360; // Handle wrap around
-    }
-    const lngFraction = lngDiff / 360;
-
-    const mapHeight = mapDiv.offsetHeight;
-    const mapWidth = mapDiv.offsetWidth;
-
-    // Account for padding - extra on left side for UI overlay
-    const leftPadding = 1000;
-    const rightPadding = 100;
-    const topPadding = 100;
-    const bottomPadding = 100;
-
-    const effectiveHeight = mapHeight - topPadding - bottomPadding;
-    const effectiveWidth = mapWidth - leftPadding - rightPadding;
-
-    const latZoom = zoom(effectiveHeight, WORLD_DIM.height, latFraction);
-    const lngZoom = zoom(effectiveWidth, WORLD_DIM.width, lngFraction);
-
-    return Math.min(latZoom, lngZoom, ZOOM_MAX);
-}
-
 function animateCamera(origin, dest) {
     const bounds = new google.maps.LatLngBounds();
     bounds.extend(origin);
@@ -291,9 +219,8 @@ function animateCamera(origin, dest) {
     const animLatDiff = Math.abs(targetLat - startLat);
     const totalDiff = Math.sqrt(animLngDiff * animLngDiff + animLatDiff * animLatDiff);
 
-    // For large moves (>60 degrees), first zoom out then zoom in
+    // Use longer duration for large moves (>60 degrees)
     const isLargeMove = totalDiff > 60;
-    const midZoom = isLargeMove ? 2 : null; // Zoom level for the "peak" of the arc
 
     // Reset back to start position for animation
     map.moveCamera({
