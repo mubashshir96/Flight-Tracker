@@ -160,7 +160,7 @@ export function drawPath(originAirport, destAirport) {
         new google.maps.LatLng(origin),
         new google.maps.LatLng(dest)
     );
-    return Math.round(distanceMeters / 1000);
+    return distanceMeters;
 }
 
 function animateCamera(origin, dest) {

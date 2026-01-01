@@ -159,11 +159,41 @@ export function setupAutocomplete(input, suggestionBox, airports, onSelect) {
     });
 }
 
-export function updateFlightInfo(originCode, destCode, distanceKm) {
+export function updateFlightInfo(originCode, destCode, distanceMeters) {
     flightInfoSection.classList.remove('hidden');
     routeOriginEl.textContent = originCode;
     routeDestEl.textContent = destCode;
 
-    const distanceMiles = Math.round(distanceKm * 0.621371);
-    distanceInfoEl.textContent = `${distanceKm} km (${distanceMiles} miles)`;
+    // Helper to format number based on magnitude
+    function formatValue(value, isSmallUnit = false) {
+        if (isSmallUnit) return Math.round(value); // m or ft always integer
+        if (value >= 100) return Math.round(value);
+        if (value >= 10) return value.toFixed(1);
+        return value.toFixed(2);
+    }
+
+    // 1. Metric
+    const distKm = distanceMeters / 1000;
+    let metricText;
+    if (distKm < 1) {
+        metricText = `${Math.round(distanceMeters)} m`;
+    } else {
+        metricText = `${formatValue(distKm)} km`;
+    }
+
+    // 2. Imperial
+    const distMiles = distanceMeters * 0.000621371;
+    let imperialText;
+    if (distMiles < 1) {
+        const distFeet = distanceMeters * 3.28084;
+        imperialText = `${Math.round(distFeet)} ft`;
+    } else {
+        imperialText = `${formatValue(distMiles)} miles`;
+    }
+
+    // 3. Nautical
+    const distNM = distanceMeters * 0.000539957;
+    const nauticalText = `${formatValue(distNM)} NM`;
+
+    distanceInfoEl.textContent = `${metricText} | ${imperialText} | ${nauticalText}`;
 }

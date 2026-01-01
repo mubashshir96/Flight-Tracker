@@ -69,11 +69,11 @@ function handleTrackFlight() {
     console.log("Tracking:", originAirport.code, "->", destAirport.code);
 
     // Draw Path
-    const distanceKm = drawPath(originAirport, destAirport);
+    const distanceMeters = drawPath(originAirport, destAirport);
 
     // Update UI
-    if (distanceKm) {
-        updateFlightInfo(originAirport.code, destAirport.code, distanceKm);
+    if (distanceMeters) {
+        updateFlightInfo(originAirport.code, destAirport.code, distanceMeters);
     }
 }
 
