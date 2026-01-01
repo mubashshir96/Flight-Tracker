@@ -30,7 +30,7 @@ function parseCSV(csvText) {
         const type = cols[2];
 
         // Filter for meaningful airports to track flights
-        if (type !== 'large_airport' && type !== 'medium_airport') continue;
+        if (type !== 'large_airport' && type !== 'medium_airport' && type !== 'small_airport') continue;
 
         const iata = cols[13];
         if (!iata) continue;
@@ -38,6 +38,7 @@ function parseCSV(csvText) {
         result.push({
             code: iata,
             name: cols[3],
+            type: cols[2], // 'large_airport' or 'medium_airport'
             city: cols[10] || '',
             country: cols[8],
             lat: parseFloat(cols[4]),
