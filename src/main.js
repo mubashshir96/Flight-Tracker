@@ -1,7 +1,7 @@
 
 import { loadAirports } from './data.js';
 import { loadGoogleMapsScript, initMap, drawPath } from './map.js';
-import { setupAutocomplete, hideApiKeySection, showApiKeySection, enableSearch, updateFlightInfo } from './ui.js';
+import { setupAutocomplete, enableSearch, updateFlightInfo } from './ui.js';
 
 // State
 let airports = [];
@@ -9,8 +9,6 @@ let originAirport = null;
 let destAirport = null;
 
 // DOM
-const apiKeyInput = document.getElementById('api-key');
-const setKeyBtn = document.getElementById('set-key-btn');
 const originInput = document.getElementById('origin-input');
 const destInput = document.getElementById('dest-input');
 const originSuggestions = document.getElementById('origin-suggestions');
@@ -33,23 +31,15 @@ async function main() {
         console.log("Destination set:", selected.code);
     });
 
-    // 3. Setup Map
+    // 3. Setup Map (API Key from environment)
     const envKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     if (envKey) {
         console.log("Using API Key from environment.");
-        hideApiKeySection();
         await initializeMap(envKey);
     } else {
-        showApiKeySection();
+        console.error("No API Key found! Set VITE_GOOGLE_MAPS_API_KEY in .env");
+        alert("No API Key found! Please set VITE_GOOGLE_MAPS_API_KEY in your .env file.");
     }
-
-    setKeyBtn.addEventListener('click', async () => {
-        const key = apiKeyInput.value.trim();
-        if (key) {
-            hideApiKeySection();
-            await initializeMap(key);
-        }
-    });
 
     trackBtn.addEventListener('click', handleTrackFlight);
 }
@@ -62,7 +52,6 @@ async function initializeMap(key) {
     } catch (err) {
         console.error("Failed to load Google Maps:", err);
         alert("Failed to load Google Maps. Please check your API Key.");
-        showApiKeySection();
     }
 }
 

@@ -55,6 +55,44 @@ export function initMap(container) {
     });
 }
 
+/**
+ * Creates HTML content for InfoWindow labels matching the UI theme
+ */
+function createLabelContent(airport) {
+    return `
+        <div style="position: relative; margin-bottom: 8px;">
+            <!-- Pointer notch (behind) -->
+            <div style="
+                position: absolute;
+                bottom: -6px;
+                left: 50%;
+                transform: translateX(-50%) rotate(45deg);
+                width: 12px;
+                height: 12px;
+                background: rgba(255, 255, 255, 0.40);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            "></div>
+            <!-- Main content (on top) -->
+            <div style="
+                position: relative;
+                background: rgba(255, 255, 255, 0.25);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border-radius: 8px;
+                padding: 8px 12px;
+                color: white;
+                font-family: 'Inter', sans-serif;
+                font-size: 12px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            ">
+                <strong>${airport.code}</strong> - ${airport.city || airport.name}
+            </div>
+        </div>
+    `;
+}
+
 export function drawPath(originAirport, destAirport) {
     if (!map) return;
 
@@ -66,40 +104,50 @@ export function drawPath(originAirport, destAirport) {
     const origin = { lat: originAirport.lat, lng: originAirport.lon };
     const dest = { lat: destAirport.lat, lng: destAirport.lon };
 
-    // Draw Polyline (Geodesic)
+    // Draw Polyline with shadow effect (two lines - shadow underneath, main on top)
+    // Shadow line (darker, wider, offset slightly)
+    const shadowPath = new google.maps.Polyline({
+        path: [origin, dest],
+        geodesic: true,
+        strokeColor: "#000000",
+        strokeOpacity: 0.4,
+        strokeWeight: 6,
+        map: map,
+        zIndex: 1
+    });
+
+    // Main flight path (white at 90% opacity)
     flightPath = new google.maps.Polyline({
         path: [origin, dest],
         geodesic: true,
-        strokeColor: "#FF0000",
-        strokeOpacity: 1.0,
-        strokeWeight: 2,
+        strokeColor: "#FFFFFF",
+        strokeOpacity: 0.9,
+        strokeWeight: 3,
         map: map,
+        zIndex: 2
     });
 
-    // Add Markers
-    const originMarker = new google.maps.Marker({
+    // Store shadow for cleanup
+    markers.push(shadowPath);
+
+    // Create InfoWindow-style labels (speech bubbles)
+    const originInfoWindow = new google.maps.InfoWindow({
+        content: createLabelContent(originAirport),
         position: origin,
-        map: map,
-        title: originAirport.code,
-        label: {
-            text: originAirport.code,
-            color: "white",
-            fontWeight: "bold"
-        }
+        disableAutoPan: true
     });
+    originInfoWindow.open(map);
 
-    const destMarker = new google.maps.Marker({
+    const destInfoWindow = new google.maps.InfoWindow({
+        content: createLabelContent(destAirport),
         position: dest,
-        map: map,
-        title: destAirport.code,
-        label: {
-            text: destAirport.code,
-            color: "white",
-            fontWeight: "bold"
-        }
+        disableAutoPan: true
     });
+    destInfoWindow.open(map);
 
-    markers.push(originMarker, destMarker);
+    // Store for cleanup (using markers array for simplicity)
+    markers.push({ setMap: () => originInfoWindow.close() });
+    markers.push({ setMap: () => destInfoWindow.close() });
 
     animateCamera(origin, dest);
 

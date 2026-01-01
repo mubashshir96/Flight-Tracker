@@ -1,20 +1,11 @@
 
 // UI Elements
-const apiKeySection = document.getElementById('api-key-section');
 const searchSection = document.getElementById('search-section');
 
 const flightInfoSection = document.getElementById('flight-info');
 const routeOriginEl = document.getElementById('route-origin');
 const routeDestEl = document.getElementById('route-dest');
 const distanceInfoEl = document.getElementById('distance-info');
-
-export function hideApiKeySection() {
-    apiKeySection.classList.add('hidden');
-}
-
-export function showApiKeySection() {
-    apiKeySection.classList.remove('hidden');
-}
 
 export function enableSearch() {
     searchSection.classList.remove('disabled');

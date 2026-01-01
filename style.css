@@ -229,3 +229,69 @@ button:hover {
     font-size: 0.9rem;
     color: var(--text-muted);
 }
+
+/* Google Maps InfoWindow Overrides */
+.gm-style-iw-ch {
+    display: none !important;
+}
+
+.gm-style-iw button.gm-ui-hover-effect {
+    display: none !important;
+}
+
+.gm-style-iw-d {
+    overflow: visible !important;
+    background: transparent !important;
+}
+
+.gm-style-iw {
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    border: none !important;
+}
+
+.gm-style-iw-c {
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    border: none !important;
+    border-radius: 0 !important;
+}
+
+.gm-style-iw-tc {
+    display: none !important;
+}
+
+.gm-style-iw-t::after {
+    display: none !important;
+}
+
+/* Remove any white backgrounds from InfoWindow containers */
+.gm-style .gm-style-iw-c {
+    background-color: transparent !important;
+}
+
+.gm-style .gm-style-iw-d {
+    background-color: transparent !important;
+}
+
+.gm-style .gm-style-iw-t {
+    background-color: transparent !important;
+}
+
+/* Nuclear option - remove ALL backgrounds from InfoWindow */
+.gm-style-iw,
+.gm-style-iw-c,
+.gm-style-iw-d,
+.gm-style-iw-t,
+.gm-style-iw>div,
+.gm-style-iw-c>div,
+.gm-style-iw-d>div {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+}
