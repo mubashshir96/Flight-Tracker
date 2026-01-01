@@ -60,23 +60,25 @@ export function initMap(container) {
  */
 function createLabelContent(airport) {
     return `
-        <div style="position: relative; margin-bottom: 8px;">
-            <!-- Pointer notch (behind) -->
+        <div style="position: relative; margin-bottom: 8px; pointer-events: none;" tabindex="-1">
+            <!-- Pointer notch (triangle) -->
             <div style="
                 position: absolute;
-                bottom: -6px;
+                bottom: -8px;
                 left: 50%;
-                transform: translateX(-50%) rotate(45deg);
-                width: 12px;
-                height: 12px;
-                background: rgba(255, 255, 255, 0.40);
+                transform: translateX(-50%);
+                width: 16px;
+                height: 10px;
+                background: rgba(255, 255, 255, 0.5);
                 backdrop-filter: blur(10px);
                 -webkit-backdrop-filter: blur(10px);
+                clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
+                pointer-events: none;
             "></div>
             <!-- Main content (on top) -->
             <div style="
                 position: relative;
-                background: rgba(255, 255, 255, 0.25);
+                background: rgba(255, 255, 255, 0.3);
                 backdrop-filter: blur(10px);
                 -webkit-backdrop-filter: blur(10px);
                 border-radius: 8px;
@@ -84,13 +86,40 @@ function createLabelContent(airport) {
                 color: white;
                 font-family: 'Inter', sans-serif;
                 font-size: 12px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.3);
                 text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+                pointer-events: none;
             ">
                 <strong>${airport.code}</strong> - ${airport.city || airport.name}
             </div>
         </div>
     `;
+}
+
+/**
+ * Cleans up InfoWindow styling by removing white backgrounds
+ * Called after InfoWindow DOM is ready
+ */
+function cleanupInfoWindowStyles() {
+    // Target all InfoWindow wrapper elements and remove their backgrounds
+    const iwContainers = document.querySelectorAll('.gm-style-iw, .gm-style-iw-c, .gm-style-iw-d, .gm-style-iw-t');
+    iwContainers.forEach(el => {
+        el.style.background = 'transparent';
+        el.style.backgroundColor = 'transparent';
+        el.style.boxShadow = 'none';
+        el.style.border = 'none';
+        el.style.padding = '0';
+        el.style.margin = '0';
+    });
+
+    // Also target any child divs that might have white backgrounds
+    const allDivs = document.querySelectorAll('.gm-style-iw div, .gm-style-iw-c div, .gm-style-iw-d div');
+    allDivs.forEach(el => {
+        const bg = window.getComputedStyle(el).backgroundColor;
+        if (bg === 'rgb(255, 255, 255)' || bg === 'white') {
+            el.style.backgroundColor = 'transparent';
+        }
+    });
 }
 
 export function drawPath(originAirport, destAirport) {

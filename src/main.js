@@ -61,6 +61,11 @@ function handleTrackFlight() {
         return;
     }
 
+    // Blur any focused inputs to clean up UI state
+    originInput.blur();
+    destInput.blur();
+    trackBtn.blur();
+
     console.log("Tracking:", originAirport.code, "->", destAirport.code);
 
     // Draw Path

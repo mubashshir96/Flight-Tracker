@@ -282,16 +282,58 @@ button:hover {
     background-color: transparent !important;
 }
 
-/* Nuclear option - remove ALL backgrounds from InfoWindow */
+/* Remove white backgrounds from InfoWindow wrapper only */
 .gm-style-iw,
 .gm-style-iw-c,
 .gm-style-iw-d,
-.gm-style-iw-t,
-.gm-style-iw>div,
-.gm-style-iw-c>div,
-.gm-style-iw-d>div {
+.gm-style-iw-t {
     background: transparent !important;
     background-color: transparent !important;
     box-shadow: none !important;
     border: none !important;
+}
+
+/* Target the specific white wrapper */
+.gm-style .gm-style-iw-a {
+    background: transparent !important;
+}
+
+div[style*="background-color: white"],
+div[style*="background-color: rgb(255, 255, 255)"],
+div[style*="background: white"],
+div[style*="background: rgb(255, 255, 255)"] {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* Complete reset for InfoWindow containers */
+.gm-style-iw,
+.gm-style-iw-c,
+.gm-style-iw-d,
+.gm-style-iw-t {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
+}
+
+/* Hide the white background wrapper that Google adds */
+.gm-style-iw-c::before,
+.gm-style-iw-c::after,
+.gm-style-iw-d::before,
+.gm-style-iw-d::after {
+    display: none !important;
+}
+
+/* Make InfoWindow non-focusable and non-interactive */
+.gm-style-iw,
+.gm-style-iw-c,
+.gm-style-iw-d,
+.gm-style-iw-t,
+.gm-style-iw *,
+.gm-style-iw-c *,
+.gm-style-iw-d * {
+    pointer-events: none !important;
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
 }
