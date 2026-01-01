@@ -1,6 +1,6 @@
 # ✈️ 3D Flight Tracker
 
-A modern, high-performance web application that visualizes flight paths on an interactive 3D Google Maps overlay. Built with Vanilla JS and Vite for speed and simplicity.
+A modern, high-performance web application that visualizes flight paths on an interactive Google Maps overlay. Built with Vanilla JS and Vite for speed and simplicity.
 
 ## ✨ Features
 
@@ -13,7 +13,7 @@ A modern, high-performance web application that visualizes flight paths on an in
   - Detailed per-leg and total trip statistics.
 - **Premium UI/UX**:
   - **Glassmorphism Design**: "Smoked Glass" aesthetic with backdrop blurring.
-  - **Cinematic Animations**: Smooth FLIP-based camera transitions (Zoom, Pan, Tilt).
+  - **Cinematic Animations**: Smooth camera transitions.
   - **Responsive Layout**: Flexbox-based interface that adapts to screen height without cutting off content.
   - **Portal-based Menus**: Autocomplete suggestions float above the interface to prevent clipping.
 
