@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Flight Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- UI Overlay -->
+    <div class="ui-container">
+
+        <!-- Header -->
+        <div class="header">
+            <h1>Flight Tracker 3D</h1>
+            <p>Visualize paths on the globe</p>
+        </div>
+
+        <!-- API Key Input (Hidden if set) -->
+        <div id="api-key-section" class="card">
+            <label for="api-key">Google Maps API Key</label>
+            <input type="text" id="api-key" placeholder="Enter your API Key here">
+            <button id="set-key-btn">Load Map</button>
+            <p class="tiny-text">Key is stored locally in your browser.</p>
+        </div>
+
+        <!-- Flight Search -->
+        <div id="search-section" class="card disabled">
+            <div class="input-group">
+                <label for="origin-input">Origin</label>
+                <input type="text" id="origin-input" placeholder="City or Code (e.g. JFK)" autocomplete="off">
+                <div id="origin-suggestions" class="suggestions"></div>
+            </div>
+
+            <div class="input-group">
+                <label for="dest-input">Destination</label>
+                <input type="text" id="dest-input" placeholder="City or Code (e.g. Heathrow)" autocomplete="off">
+                <div id="dest-suggestions" class="suggestions"></div>
+            </div>
+
+            <button id="track-btn">Track Flight</button>
+        </div>
+
+        <!-- Status/Info -->
+        <div id="flight-info" class="card hidden">
+            <div class="route-info">
+                <span id="route-origin">---</span>
+                <span class="arrow">✈</span>
+                <span id="route-dest">---</span>
+            </div>
+            <p id="distance-info"></p>
+        </div>
+
+    </div>
+
+    <script type="module" src="/script.js"></script>
+</body>
+
+</html>
