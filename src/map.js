@@ -70,7 +70,7 @@ function createLabelContent(airport) {
                 transform: translateX(-50%);
                 width: 16px;
                 height: 10px;
-                background: rgba(255, 255, 255, 0.5);
+                background: rgba(0, 0, 0, 0.5);
                 backdrop-filter: blur(10px);
                 -webkit-backdrop-filter: blur(10px);
                 clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
@@ -79,7 +79,7 @@ function createLabelContent(airport) {
             <!-- Main content (on top) -->
             <div style="
                 position: relative;
-                background: rgba(255, 255, 255, 0.3);
+                background: rgba(0, 0, 0, 0.3);
                 backdrop-filter: blur(10px);
                 -webkit-backdrop-filter: blur(10px);
                 border-radius: 8px;
@@ -88,7 +88,6 @@ function createLabelContent(airport) {
                 font-family: 'Inter', sans-serif;
                 font-size: 12px;
                 box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.3);
-                text-shadow: 0 1px 2px rgba(0,0,0,0.5);
                 pointer-events: none;
             ">
                 <strong>${airport.code}</strong> - ${airport.city || airport.name}
@@ -97,87 +96,79 @@ function createLabelContent(airport) {
     `;
 }
 
-export function drawPath(originAirport, destAirport) {
-    if (!map) return;
+export function drawPath(routeAirports) {
+    if (!map || routeAirports.length < 2) return;
 
     // Clear previous
-    if (flightPath) flightPath.setMap(null);
     markers.forEach(m => m.setMap(null));
     markers = [];
 
-    const origin = { lat: originAirport.lat, lng: originAirport.lon };
-    const dest = { lat: destAirport.lat, lng: destAirport.lon };
+    const bounds = new google.maps.LatLngBounds();
+    let totalDistanceMeters = 0;
 
-    // Draw Polyline with shadow effect (two lines - shadow underneath, main on top)
-    // Shadow line (darker, wider, offset slightly)
-    const shadowPath = new google.maps.Polyline({
-        path: [origin, dest],
-        geodesic: true,
-        strokeColor: "#000000",
-        strokeOpacity: 0.4,
-        strokeWeight: 6,
-        map: map,
-        zIndex: 1
+    // Iterate through segments
+    for (let i = 0; i < routeAirports.length - 1; i++) {
+        const originAirport = routeAirports[i];
+        const destAirport = routeAirports[i + 1];
+
+        const origin = { lat: originAirport.lat, lng: originAirport.lon };
+        const dest = { lat: destAirport.lat, lng: destAirport.lon };
+
+        bounds.extend(origin);
+        bounds.extend(dest);
+
+        // Draw Polyline (Shadow)
+        const shadowPath = new google.maps.Polyline({
+            path: [origin, dest],
+            geodesic: true,
+            strokeColor: "#000000",
+            strokeOpacity: 0.4,
+            strokeWeight: 6,
+            map: map,
+            zIndex: 1
+        });
+        markers.push(shadowPath);
+
+        // Draw Polyline (Main)
+        const flightPath = new google.maps.Polyline({
+            path: [origin, dest],
+            geodesic: true,
+            strokeColor: "#FFFFFF",
+            strokeOpacity: 0.9,
+            strokeWeight: 3,
+            map: map,
+            zIndex: 2
+        });
+        markers.push(flightPath);
+
+        // Add Markers/InfoWindows for each airport (avoid duplicates if already added)
+        // Ideally we just add markers for all points in routeAirports once
+
+        // Calculate segment distance
+        totalDistanceMeters += google.maps.geometry.spherical.computeDistanceBetween(
+            new google.maps.LatLng(origin),
+            new google.maps.LatLng(dest)
+        );
+    }
+
+    // Add airport markers
+    routeAirports.forEach(airport => {
+        const pos = { lat: airport.lat, lng: airport.lon };
+        const infoWindow = new google.maps.InfoWindow({
+            content: createLabelContent(airport),
+            position: pos,
+            disableAutoPan: true
+        });
+        infoWindow.open(map);
+        markers.push({ setMap: () => infoWindow.close() });
     });
 
-    // Main flight path (white at 90% opacity)
-    flightPath = new google.maps.Polyline({
-        path: [origin, dest],
-        geodesic: true,
-        strokeColor: "#FFFFFF",
-        strokeOpacity: 0.9,
-        strokeWeight: 3,
-        map: map,
-        zIndex: 2
-    });
+    animateCamera(bounds);
 
-    // Store shadow for cleanup
-    markers.push(shadowPath);
-
-    // Create InfoWindow-style labels (speech bubbles)
-    const originInfoWindow = new google.maps.InfoWindow({
-        content: createLabelContent(originAirport),
-        position: origin,
-        disableAutoPan: true
-    });
-    originInfoWindow.open(map);
-
-    const destInfoWindow = new google.maps.InfoWindow({
-        content: createLabelContent(destAirport),
-        position: dest,
-        disableAutoPan: true
-    });
-    destInfoWindow.open(map);
-
-    // Store for cleanup (using markers array for simplicity)
-    markers.push({ setMap: () => originInfoWindow.close() });
-    markers.push({ setMap: () => destInfoWindow.close() });
-
-    animateCamera(origin, dest);
-
-    // Calculate distance
-    const distanceMeters = google.maps.geometry.spherical.computeDistanceBetween(
-        new google.maps.LatLng(origin),
-        new google.maps.LatLng(dest)
-    );
-    return distanceMeters;
+    return totalDistanceMeters;
 }
 
-function animateCamera(origin, dest) {
-    const bounds = new google.maps.LatLngBounds();
-    bounds.extend(origin);
-    bounds.extend(dest);
-
-    // Calculate rough distance to determine padding
-    let lngDiff = Math.abs(dest.lng - origin.lng);
-    if (lngDiff > 180) lngDiff = 360 - lngDiff;
-    const latDiff = Math.abs(dest.lat - origin.lat);
-    const roughDistance = Math.sqrt(lngDiff * lngDiff + latDiff * latDiff);
-
-    // Use smaller padding for long-distance flights (zoom in more)
-    const basePadding = roughDistance > 100 ? 40 : 80;
-    const leftPadding = roughDistance > 100 ? 350 : 400;
-
+function animateCamera(bounds) {
     // Capture START State
     const startState = {
         center: map.getCenter(),
@@ -185,6 +176,20 @@ function animateCamera(origin, dest) {
         tilt: map.getTilt(),
         heading: map.getHeading()
     };
+
+    // Calculate rough diagonal of bounds for padding logic
+    const ne = bounds.getNorthEast();
+    const sw = bounds.getSouthWest();
+
+    // Calculate rough distance to determine padding
+    let lngDiff = Math.abs(ne.lng() - sw.lng());
+    if (lngDiff > 180) lngDiff = 360 - lngDiff;
+    const latDiff = Math.abs(ne.lat() - sw.lat());
+    const roughDistance = Math.sqrt(lngDiff * lngDiff + latDiff * latDiff);
+
+    // Use smaller padding for larger bounds (zoom in more generally)
+    const basePadding = roughDistance > 60 ? 40 : 80;
+    const leftPadding = roughDistance > 60 ? 350 : 400;
 
     // Get target state from fitBounds by applying it and capturing result
     map.fitBounds(bounds, {
@@ -207,21 +212,6 @@ function animateCamera(origin, dest) {
         heading: 0
     };
 
-    // Check if the distance is too far - use different animation strategy
-    const startLat = startState.center.lat();
-    const startLng = startState.center.lng();
-    const targetLat = targetState.center.lat();
-    const targetLng = targetState.center.lng();
-
-    // Calculate rough distance for animation strategy (in degrees)
-    let animLngDiff = Math.abs(targetLng - startLng);
-    if (animLngDiff > 180) animLngDiff = 360 - animLngDiff; // Handle wrap-around
-    const animLatDiff = Math.abs(targetLat - startLat);
-    const totalDiff = Math.sqrt(animLngDiff * animLngDiff + animLatDiff * animLatDiff);
-
-    // Use longer duration for large moves (>60 degrees)
-    const isLargeMove = totalDiff > 60;
-
     // Reset back to start position for animation
     map.moveCamera({
         center: startState.center,
@@ -230,16 +220,29 @@ function animateCamera(origin, dest) {
         heading: startState.heading
     });
 
+    // Check magnitude of move
+    const startLat = startState.center.lat();
+    const startLng = startState.center.lng();
+    const targetLat = targetState.center.lat();
+    const targetLng = targetState.center.lng();
+
+    let animLngDiff = Math.abs(targetLng - startLng);
+    if (animLngDiff > 180) animLngDiff = 360 - animLngDiff;
+    const animLatDiff = Math.abs(targetLat - startLat);
+    const totalDiff = Math.sqrt(animLngDiff * animLngDiff + animLatDiff * animLatDiff);
+
+    // Use longer duration for large moves (>60 degrees)
+    const isLargeMove = totalDiff > 60;
+
     // Animate from START to TARGET
     const startTime = performance.now();
-    const duration = isLargeMove ? 3000 : 2500; // Longer duration for large moves
+    const duration = isLargeMove ? 3000 : 2500;
 
     // Calculate the shortest path for longitude (handle wrap-around at ±180)
     let targetLngForAnim = targetState.center.lng();
     const startLngForAnim = startState.center.lng();
     let lngDiffForAnim = targetLngForAnim - startLngForAnim;
 
-    // If the difference is more than 180, go the other way
     if (lngDiffForAnim > 180) {
         targetLngForAnim -= 360;
     } else if (lngDiffForAnim < -180) {

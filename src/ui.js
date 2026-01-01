@@ -84,7 +84,23 @@ export function setupAutocomplete(input, suggestionBox, airports, onSelect) {
         currentMatches = matches.slice(0, 10);
 
         if (currentMatches.length > 0) {
+            // Portal: Move to body to avoid stacking context issues (backdrop-filter)
+            if (suggestionBox.parentNode !== document.body) {
+                document.body.appendChild(suggestionBox);
+            }
+
             suggestionBox.classList.add('active');
+
+            // Float the suggestions box using fixed positioning
+            const rect = input.getBoundingClientRect();
+            suggestionBox.style.position = 'fixed';
+            suggestionBox.style.top = `${rect.bottom + 5}px`;
+            suggestionBox.style.left = `${rect.left}px`;
+            suggestionBox.style.width = `${rect.width}px`;
+
+            // Re-calculate on scroll or resize to keep it attached
+            // (Simple version: just hide on scroll/resize to avoid complexity/lag)
+
             currentMatches.forEach((airport, index) => {
                 const div = document.createElement('div');
                 div.className = 'suggestion-item';
@@ -108,6 +124,14 @@ export function setupAutocomplete(input, suggestionBox, airports, onSelect) {
             suggestionBox.classList.remove('active');
         }
     });
+
+    // Hide suggestions on scroll (body or containers) to prevent floating ghosts
+    document.addEventListener('scroll', () => {
+        if (suggestionBox.classList.contains('active')) {
+            suggestionBox.classList.remove('active');
+            input.blur(); // Also blur to fully reset state
+        }
+    }, true); // Capture phase to catch all scrolls
 
     // Handle keyboard navigation
     input.addEventListener('keydown', (e) => {
@@ -159,24 +183,162 @@ export function setupAutocomplete(input, suggestionBox, airports, onSelect) {
     });
 }
 
-export function updateFlightInfo(origin, dest, distanceMeters) {
+export function setupLayoverControls(airports, onUpdate) {
+    const container = document.getElementById('layovers-container');
+    const addBtn = document.getElementById('add-layover-btn');
+
+    addBtn.addEventListener('click', () => {
+        const id = Date.now();
+        const group = document.createElement('div');
+        group.className = 'input-group layover-group';
+        group.dataset.id = id;
+        group.style.position = 'relative';
+
+        group.innerHTML = `
+            <label>Layover</label>
+            <div style="display: flex; gap: 5px;">
+                <div style="position: relative; flex-grow: 1;">
+                    <input type="text" placeholder="City or Code" autocomplete="off" class="layover-input">
+                    <div class="suggestions"></div>
+                </div>
+                <button class="remove-layover-btn">×</button>
+            </div>
+        `;
+
+        container.appendChild(group);
+
+        // Auto-scroll to bottom
+        container.scrollTop = container.scrollHeight;
+
+        // Setup removal
+        group.querySelector('.remove-layover-btn').addEventListener('click', () => {
+            container.removeChild(group);
+
+            // Cleanup detached suggestion box if it exists in body
+            const suggestions = group.querySelector('.suggestions');
+            if (suggestions && suggestions.parentNode === document.body) {
+                document.body.removeChild(suggestions);
+            }
+
+            onUpdate(); // Trigger update to redraw path
+        });
+
+        // Setup autocomplete
+        const input = group.querySelector('input');
+        const suggestions = group.querySelector('.suggestions');
+
+        setupAutocomplete(input, suggestions, airports, (selected) => {
+            // Store selected airport on the input element
+            input.dataset.airport = JSON.stringify(selected);
+            console.log("Layover set:", selected.code);
+            onUpdate(); // Trigger update to redraw path
+        });
+    });
+}
+
+export function getLayovers() {
+    const inputs = document.querySelectorAll('.layover-input');
+    const layovers = [];
+    inputs.forEach(input => {
+        if (input.dataset.airport) {
+            try {
+                layovers.push(JSON.parse(input.dataset.airport));
+            } catch (e) {
+                console.error("Failed to parse airport data", e);
+            }
+        }
+    });
+    return layovers;
+}
+
+export function updateFlightInfo(routeAirports, totalDistanceMeters) {
     flightInfoSection.classList.remove('hidden');
-    routeOriginEl.textContent = origin.code;
-    routeDestEl.textContent = dest.code;
 
-    // Calculate Bearing and Duration
-    const duration = calculateFlightDuration(origin, dest, distanceMeters);
-    const hours = Math.floor(duration);
-    const minutes = Math.round((duration - hours) * 60);
-    const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    // Clear previous info
+    flightInfoSection.innerHTML = '';
 
-    // Update arrow with time
-    // Adding spaces and time estimate next to plane icon
-    const arrowEl = document.querySelector('.arrow');
-    if (arrowEl) {
-        arrowEl.innerHTML = `✈ <span style="font-size: 0.9em; margin-left: 8px;">${formattedTime}</span>`;
+    // Header for Total Stats
+    const totalStatsDiv = document.createElement('div');
+    totalStatsDiv.style.marginBottom = '15px';
+    totalStatsDiv.style.paddingBottom = '10px';
+    totalStatsDiv.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
+
+    // Calculate total duration
+    let totalDuration = 0;
+    for (let i = 0; i < routeAirports.length - 1; i++) {
+        const origin = routeAirports[i];
+        const dest = routeAirports[i + 1];
+        const dist = google.maps.geometry.spherical.computeDistanceBetween(
+            new google.maps.LatLng(origin.lat, origin.lon),
+            new google.maps.LatLng(dest.lat, dest.lon)
+        );
+        totalDuration += calculateFlightDuration(origin, dest, dist);
     }
 
+    const totalHours = Math.floor(totalDuration);
+    const totalMinutes = Math.round((totalDuration - totalHours) * 60);
+    const totalTimeStr = `${totalHours.toString().padStart(2, '0')}:${totalMinutes.toString().padStart(2, '0')}`;
+
+    totalStatsDiv.innerHTML = `
+        <div class="route-info" style="justify-content: center;">
+            <span style="font-size: 1.1em;">Total Trip</span>
+        </div>
+        <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 5px;">
+            <div style="text-align: center;">
+                <div class="tiny-text" style="margin-bottom: 5px;">DISTANCE</div>
+                <div style="font-weight: 600;">${formatDistance(totalDistanceMeters).metric}</div>
+            </div>
+            <div style="text-align: center;">
+                 <div class="tiny-text" style="margin-bottom: 5px;">TIME</div>
+                 <div style="font-weight: 600;">${totalTimeStr}</div>
+            </div>
+        </div>
+    `;
+    flightInfoSection.appendChild(totalStatsDiv);
+
+    // Per Leg Stats
+    const legsContainer = document.createElement('div');
+    legsContainer.id = 'flight-legs-container';
+    legsContainer.style.maxHeight = '200px';
+    legsContainer.style.overflowY = 'auto';
+
+    for (let i = 0; i < routeAirports.length - 1; i++) {
+        const origin = routeAirports[i];
+        const dest = routeAirports[i + 1];
+
+        const distMeters = google.maps.geometry.spherical.computeDistanceBetween(
+            new google.maps.LatLng(origin.lat, origin.lon),
+            new google.maps.LatLng(dest.lat, dest.lon)
+        );
+
+        const duration = calculateFlightDuration(origin, dest, distMeters);
+        const legHours = Math.floor(duration);
+        const legMinutes = Math.round((duration - legHours) * 60);
+        const legTimeStr = `${legHours.toString().padStart(2, '0')}:${legMinutes.toString().padStart(2, '0')}`;
+
+        const legDiv = document.createElement('div');
+        legDiv.style.marginBottom = '10px';
+        legDiv.style.background = 'rgba(255,255,255,0.05)';
+        legDiv.style.padding = '8px';
+        legDiv.style.borderRadius = '8px';
+
+        legDiv.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-weight: 600;">${origin.code}</span>
+                <span class="arrow" style="font-size: 0.8em; color: white;">✈</span>
+                <span style="font-weight: 600;">${dest.code}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: var(--text-muted);">
+                <span>${formatDistance(distMeters).metric}</span>
+                <span>${legTimeStr}</span>
+            </div>
+        `;
+        legsContainer.appendChild(legDiv);
+    }
+    flightInfoSection.appendChild(legsContainer);
+}
+
+function formatDistance(distanceMeters) {
     // Helper to format number based on magnitude
     function formatValue(value, isSmallUnit = false) {
         if (isSmallUnit) return Math.round(value); // m or ft always integer
@@ -208,7 +370,11 @@ export function updateFlightInfo(origin, dest, distanceMeters) {
     const distNM = distanceMeters * 0.000539957;
     const nauticalText = `${formatValue(distNM)} NM`;
 
-    distanceInfoEl.textContent = `${metricText} | ${imperialText} | ${nauticalText}`;
+    return {
+        metric: metricText,
+        imperial: imperialText,
+        nautical: nauticalText
+    };
 }
 
 /**

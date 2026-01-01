@@ -1,7 +1,7 @@
 
 import { loadAirports } from './data.js';
 import { loadGoogleMapsScript, initMap, drawPath } from './map.js';
-import { setupAutocomplete, enableSearch, updateFlightInfo } from './ui.js';
+import { setupAutocomplete, enableSearch, updateFlightInfo, setupLayoverControls, getLayovers } from './ui.js';
 
 // State
 let airports = [];
@@ -29,6 +29,12 @@ async function main() {
     setupAutocomplete(destInput, destSuggestions, airports, (selected) => {
         destAirport = selected;
         console.log("Destination set:", selected.code);
+    });
+
+    // Setup Layover UI
+    setupLayoverControls(airports, () => {
+        // Optional: Auto-update if tracking is already active? 
+        // For now, we wait for user to click Track
     });
 
     // 3. Setup Map (API Key from environment)
@@ -61,19 +67,25 @@ function handleTrackFlight() {
         return;
     }
 
+    // Collect Layover Airports
+    const layovers = getLayovers();
+
+    // Construct full route array
+    const routeAirports = [originAirport, ...layovers, destAirport];
+
     // Blur any focused inputs to clean up UI state
     originInput.blur();
     destInput.blur();
     trackBtn.blur();
 
-    console.log("Tracking:", originAirport.code, "->", destAirport.code);
+    console.log("Tracking Route:", routeAirports.map(a => a.code).join(' -> '));
 
-    // Draw Path
-    const distanceMeters = drawPath(originAirport, destAirport);
+    // Draw Path (handle multi-leg)
+    const totalDistanceMeters = drawPath(routeAirports);
 
-    // Update UI
-    if (distanceMeters) {
-        updateFlightInfo(originAirport, destAirport, distanceMeters);
+    // Update UI (pass full route and total distance)
+    if (totalDistanceMeters !== undefined) {
+        updateFlightInfo(routeAirports, totalDistanceMeters);
     }
 }
 
