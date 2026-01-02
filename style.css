@@ -7,7 +7,6 @@
     --text-muted: #cbd5e1;
     --input-bg: rgba(0, 0, 0, 0.5);
     --shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
-    --shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -50,7 +49,6 @@ body {
     pointer-events: none;
     /* Let clicks pass through around cards */
     max-height: calc(100vh - 40px);
-    max-height: calc(100vh - 40px);
     overflow: visible;
     /* Allow content to expand */
 }
@@ -68,7 +66,6 @@ body {
 
 .header h1 {
     font-size: 1.2rem;
-    font-weight: 600;
     font-weight: 600;
 }
 
@@ -207,7 +204,6 @@ button:hover {
 .secondary-btn {
     background-color: transparent;
     border: none;
-    box-shadow: none;
     box-shadow: none;
     margin-top: 5px;
     /* Removed negative margin */
@@ -427,7 +423,6 @@ button:hover {
     font-size: 1.1rem;
     font-weight: 600;
     margin-bottom: 5px;
-    margin-bottom: 5px;
 }
 
 .arrow {
@@ -438,7 +433,6 @@ button:hover {
 #distance-info {
     text-align: center;
     font-size: 0.9rem;
-    color: var(--text-muted);
     color: var(--text-muted);
 }
 
@@ -570,4 +564,43 @@ button:hover {
 .fade-exit-active {
     opacity: 0;
     transform: translateY(-10px);
+}
+
+/* Custom Map Controls */
+.map-controls {
+    position: absolute;
+    bottom: 30px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 5;
+}
+
+.control-btn {
+    width: 40px;
+    height: 40px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    /* Square with rounded corners */
+    color: white;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    padding: 0;
+}
+
+.control-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.control-btn:active {
+    transform: scale(0.95);
 }

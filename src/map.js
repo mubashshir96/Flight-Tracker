@@ -45,8 +45,8 @@ export function initMap(container) {
         isFractionalZoomEnabled: true,
         tilt: 0,
         disableDefaultUI: true,
-        rotateControl: true,
-        zoomControl: true,
+        rotateControl: false,
+        zoomControl: false,
         restriction: {
             latLngBounds: {
                 north: 85,
@@ -56,6 +56,15 @@ export function initMap(container) {
             },
             strictBounds: true,
         },
+    });
+
+    // Custom Zoom Controls
+    document.getElementById('zoom-in').addEventListener('click', () => {
+        map.setZoom(map.getZoom() + 1);
+    });
+
+    document.getElementById('zoom-out').addEventListener('click', () => {
+        map.setZoom(map.getZoom() - 1);
     });
 }
 
@@ -321,8 +330,8 @@ function animateCamera(bounds) {
     const roughDistance = Math.sqrt(lngDiff * lngDiff + latDiff * latDiff);
 
     // Use larger padding to ensure zoom out
-    const basePadding = roughDistance > 60 ? 130 : 80;
-    const leftPadding = roughDistance > 60 ? 550 : 400;
+    const basePadding = 120;
+    const leftPadding = 520;
 
     // Get target state from fitBounds by applying it and capturing result
     map.fitBounds(bounds, {

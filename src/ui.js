@@ -3,9 +3,7 @@
 const searchSection = document.getElementById('search-section');
 
 const flightInfoSection = document.getElementById('flight-info');
-const routeOriginEl = document.getElementById('route-origin');
-const routeDestEl = document.getElementById('route-dest');
-const distanceInfoEl = document.getElementById('distance-info');
+
 
 export function enableSearch() {
     searchSection.classList.remove('disabled');
@@ -45,28 +43,29 @@ export function findBestMatch(query, airports) {
 
     if (matches.length === 0) return null;
 
-    matches.sort((a, b) => {
-        const codeA = a.code.toLowerCase();
-        const codeB = b.code.toLowerCase();
-
-        // Exact code match gets highest priority
-        if (codeA === query && codeB !== query) return -1;
-        if (codeB === query && codeA !== query) return 1;
-
-        // Starts with code gets second priority
-        const startsA = codeA.startsWith(query);
-        const startsB = codeB.startsWith(query);
-        if (startsA && !startsB) return -1;
-        if (!startsA && startsB) return 1;
-
-        // Prioritize large_airport over medium_airport
-        if (a.type === 'large_airport' && b.type !== 'large_airport') return -1;
-        if (b.type === 'large_airport' && a.type !== 'large_airport') return 1;
-
-        return 0;
-    });
-
+    matches.sort((a, b) => compareMatches(a, b, query));
     return matches[0];
+}
+
+function compareMatches(a, b, query) {
+    const codeA = a.code.toLowerCase();
+    const codeB = b.code.toLowerCase();
+
+    // Exact code match gets highest priority
+    if (codeA === query && codeB !== query) return -1;
+    if (codeB === query && codeA !== query) return 1;
+
+    // Starts with code gets second priority
+    const startsA = codeA.startsWith(query);
+    const startsB = codeB.startsWith(query);
+    if (startsA && !startsB) return -1;
+    if (!startsA && startsB) return 1;
+
+    // Prioritize large_airport over medium_airport
+    if (a.type === 'large_airport' && b.type !== 'large_airport') return -1;
+    if (b.type === 'large_airport' && a.type !== 'large_airport') return 1;
+
+    return 0;
 }
 
 export function setupAutocomplete(input, suggestionBox, airports, onSelect) {
@@ -113,19 +112,7 @@ export function setupAutocomplete(input, suggestionBox, airports, onSelect) {
             a.name.toLowerCase().includes(query)
         );
 
-        matches.sort((a, b) => {
-            const codeA = a.code.toLowerCase();
-            const codeB = b.code.toLowerCase();
-            if (codeA === query && codeB !== query) return -1;
-            if (codeB === query && codeA !== query) return 1;
-            const startsA = codeA.startsWith(query);
-            const startsB = codeB.startsWith(query);
-            if (startsA && !startsB) return -1;
-            if (!startsA && startsB) return 1;
-            if (a.type === 'large_airport' && b.type !== 'large_airport') return -1;
-            if (b.type === 'large_airport' && a.type !== 'large_airport') return 1;
-            return 0;
-        });
+        matches.sort((a, b) => compareMatches(a, b, query));
 
         currentMatches = matches.slice(0, 10);
 
@@ -753,15 +740,17 @@ function formatDistance(distanceMeters) {
     };
 }
 
+const TO_RAD = Math.PI / 180;
+const BASE_SPEED_KMH = 900;
+
 /**
  * Calculates estimation of flight duration accounting for wind belts
  * @returns {number} Duration in hours
  */
 function calculateFlightDuration(origin, dest, distanceMeters) {
-    const toRad = (d) => d * Math.PI / 180;
-    const lat1 = toRad(origin.lat);
-    const lat2 = toRad(dest.lat);
-    const dLon = toRad(dest.lon - origin.lon);
+    const lat1 = origin.lat * TO_RAD;
+    const lat2 = dest.lat * TO_RAD;
+    const dLon = (dest.lon - origin.lon) * TO_RAD;
 
     // Calculate Bearing (Initial Bearing)
     const y = Math.sin(dLon) * Math.cos(lat2);
@@ -769,16 +758,13 @@ function calculateFlightDuration(origin, dest, distanceMeters) {
         Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
     const bearing = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 
-    // Base Speed (Typical commercial jet cruising speed)
-    const baseSpeedKmh = 900;
-
     // Wind Effect (Westerlies in mid-latitudes)
     // Cosine of (Bearing - 90 deg) gives 1 for East, -1 for West
     // We assume a net wind component of ~100 km/h
     // This is a simplified model of the Jet Stream effect
-    const windComponent = Math.cos((bearing - 90) * Math.PI / 180) * 100;
+    const windComponent = Math.cos((bearing - 90) * TO_RAD) * 100;
 
-    const effectiveSpeed = baseSpeedKmh + windComponent;
+    const effectiveSpeed = BASE_SPEED_KMH + windComponent;
 
     // Calculate raw flight time
     const distanceKm = distanceMeters / 1000;

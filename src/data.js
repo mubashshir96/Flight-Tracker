@@ -49,25 +49,32 @@ function parseCSV(csvText) {
 }
 
 // Helper to parse a CSV line handling quotes
+// Helper to parse a CSV line handling quotes
 function parseCSVLine(text) {
     const result = [];
-    let cur = '';
+    let start = 0;
     let inQuote = false;
+
     for (let i = 0; i < text.length; i++) {
         const char = text[i];
         if (char === '"') {
             inQuote = !inQuote;
         } else if (char === ',' && !inQuote) {
-            result.push(cur);
-            cur = '';
-        } else {
-            cur += char;
+            let field = text.substring(start, i);
+            if (field.startsWith('"') && field.endsWith('"')) {
+                field = field.substring(1, field.length - 1).replace(/""/g, '"');
+            }
+            result.push(field);
+            start = i + 1;
         }
     }
-    // Strip quotes if present
-    if (cur.length >= 2 && cur.startsWith('"') && cur.endsWith('"')) {
-        cur = cur.substring(1, cur.length - 1);
+
+    // Last field
+    let field = text.substring(start);
+    if (field.startsWith('"') && field.endsWith('"')) {
+        field = field.substring(1, field.length - 1).replace(/""/g, '"');
     }
-    result.push(cur);
+    result.push(field);
+
     return result;
 }
