@@ -1,71 +1,99 @@
-# ✈️ 3D Flight Tracker
+# Flight Visualizer
 
-A modern, high-performance web application that visualizes flight paths on an interactive Google Maps overlay. Built with Vanilla JS and Vite for speed and simplicity.
+A modern web application that visualizes flight paths on an interactive 3D Google Maps globe. Built with Vanilla JS and Vite.
 
-## ✨ Features
+## Features
 
-- **3D Globe Visualization**: Uses WebGL-powered Vector Maps for a stunning, rotatable earth view.
-- **Smart Pathing**: Draws accurate geodesic (curved) flight paths between airports.
-- **Multi-Leg Routing**: Support for multiple layovers with dynamic route updates.
+- **3D Globe Visualization**: WebGL-powered Vector Maps with smooth rotation and tilt
+- **Smart Pathing**: Accurate geodesic (curved) flight paths between airports
+- **Multi-Leg Routing**: Add up to 8 layovers with drag-and-drop reordering
 - **Advanced Metrics**:
-  - Distance displayed in Metric (km), Imperial (mi), and Nautical (nm) units.
-  - **Wind-Aware Flight Time**: Estimates duration accounting for jet streams (Eastbound flights are faster!).
-  - Detailed per-leg and total trip statistics.
-- **Premium UI/UX**:
-  - **Glassmorphism Design**: "Smoked Glass" aesthetic with backdrop blurring.
-  - **Cinematic Animations**: Smooth camera transitions.
-  - **Responsive Layout**: Flexbox-based interface that adapts to screen height without cutting off content.
-  - **Portal-based Menus**: Autocomplete suggestions float above the interface to prevent clipping.
+  - Distance in Metric (km), Imperial (mi), and Nautical (NM)
+  - Wind-aware flight time estimates (jet stream effects)
+  - Per-leg and total trip statistics
+- **Premium UI**: Glassmorphism design, cinematic camera animations, responsive layout
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
-- Node.js installed.
-- A valid Google Maps API Key with **Maps JavaScript API** enabled.
+- Node.js (v16+)
+- Google Maps API Key with **Maps JavaScript API** and **Geometry Library** enabled
 
 ### Installation
 
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/yourusername/flight-tracker.git
-    cd flight-tracker
-    ```
+```bash
+git clone https://github.com/Cynid-22/Flight-Tracker.git
+cd Flight-Tracker
+npm install
+```
 
-2.  **Install dependencies**:
-    ```bash
-    npm install
-    ```
+### Configuration
 
-3.  **Configure Environment**:
-    - Create a `.env` file in the root directory.
-    - Add your API Key:
-      ```env
-      VITE_GOOGLE_MAPS_API_KEY=YOUR_API_KEY_HERE
-      ```
+Create a `.env` file in the root directory:
 
-4.  **Run Development Server**:
-    ```bash
-    npm run dev
-    ```
-    Open `http://localhost:5173` in your browser.
+```env
+VITE_GOOGLE_MAPS_API_KEY=YOUR_API_KEY_HERE
+```
 
-## 🛠️ Project Structure
+### Run
 
-The codebase is modularized for maintainability:
+```bash
+npm run dev
+```
 
--   `src/main.js`: Application entry point and logic orchestration.
--   `src/map.js`: Google Maps API initialization, 3D rendering, and marker management.
--   `src/ui.js`: DOM manipulation, event listeners, and autocomplete logic.
--   `src/data.js`: Efficient parsing of the CSV airport database.
--   `style.css`: All styling variables, glassmorphism effects, and responsive layout rules.
+Open `http://localhost:5173` in your browser.
 
-## 🎮 Controls
+## Project Structure
 
--   **Rotate/Tilt**: Hold `Ctrl` (or `Shift`) + Left Click and drag.
--   **Zoom**: Scroll wheel or pinch.
--   **Select Airport**: Type code (e.g., "JFK") or city name. Press `Enter`/`Tab` to auto-select the best match.
+```
+src/
+├── main.js           # Entry point
+├── data.js           # Airport CSV parser
+├── map.js            # Map barrel (re-exports)
+├── ui.js             # UI barrel (re-exports)
+├── flight/
+│   └── duration.js   # Flight time calculator
+├── map/
+│   ├── core.js       # Map initialization
+│   ├── path.js       # Path drawing
+│   ├── labels.js     # Airport labels
+│   └── animation.js  # Camera animation
+├── ui/
+│   ├── autocomplete.js
+│   ├── layovers.js
+│   ├── dragdrop.js
+│   ├── collapse.js
+│   ├── flightInfo.js
+│   └── animations.js
+└── utils/
+    ├── constants.js
+    ├── formatting.js
+    └── notifications.js
 
-## 📄 License
+styles/
+├── main.css          # Master import
+├── variables.css     # CSS custom properties
+├── base.css          # Reset, body, map
+├── layout.css        # Container, cards
+├── components.css    # Buttons, inputs
+├── layovers.css      # Stop management
+├── suggestions.css   # Autocomplete dropdown
+├── flight-info.css   # Route display
+├── notifications.css # Toast messages
+├── animations.css    # Transitions
+└── map-controls.css  # Zoom buttons
+```
 
-Distributed under the MIT License. See `LICENSE` for more information.
+## Controls
+
+| Action | Input |
+|--------|-------|
+| Rotate/Tilt | `Ctrl` + Left Click + Drag |
+| Zoom | Scroll wheel or pinch |
+| Select Airport | Type code (JFK) or city, press `Enter`/`Tab` |
+| Reorder Stops | Drag the ⠿ handle |
+
+## License
+
+MIT License. See [LICENSE](LICENSE) for details.
