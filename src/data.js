@@ -5,7 +5,7 @@
  */
 export async function loadAirports() {
     try {
-        const response = await fetch('/airports.csv');
+        const response = await fetch('/data/airports.csv');
         const text = await response.text();
         return parseCSV(text);
     } catch (err) {
