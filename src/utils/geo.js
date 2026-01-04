@@ -82,15 +82,32 @@ export function getDistanceFromPath(point, pathPoints) {
     let minDistance = Infinity;
 
     for (let i = 0; i < pathPoints.length - 1; i++) {
-        const segmentStart = pathPoints[i];
-        const segmentEnd = pathPoints[i + 1];
-        const distance = pointToSegmentDistance(point, segmentStart, segmentEnd);
-        minDistance = Math.min(minDistance, distance);
-    }
+        const start = pathPoints[i];
+        const end = pathPoints[i + 1];
 
-    // Also check distance to endpoints
-    for (const pathPoint of pathPoints) {
-        const distance = haversineDistance(point, { lat: pathPoint.lat, lon: pathPoint.lon });
+        // Per-segment cutoffs
+
+        // 1. Origin Cutoff: If this is the FIRST segment, enforce "Start" boundary.
+        // Landmarks cannot be "behind" the start point relative to the first leg's direction.
+        if (i === 0) {
+            const startBearing = bearing(start, end);
+            const bearingToPoint = bearing(start, point);
+            const diff = Math.abs(normalizeAngle(bearingToPoint - startBearing));
+            // If > 90 degrees, point is behind start -> Skip this segment as a valid candidate
+            if (diff > Math.PI / 2) continue;
+        }
+
+        // 2. Destination Cutoff: If this is the LAST segment, enforce "End" boundary.
+        // Landmarks cannot be "beyond" the destination relative to the last leg's direction.
+        if (i === pathPoints.length - 2) {
+            const endBearing = bearing(start, end);
+            const bearingToPoint = bearing(end, point);
+            const diff = Math.abs(normalizeAngle(bearingToPoint - endBearing));
+            // If < 90 degrees, point is ahead of end -> Skip this segment
+            if (diff < Math.PI / 2) continue;
+        }
+
+        const distance = pointToSegmentDistance(point, start, end);
         minDistance = Math.min(minDistance, distance);
     }
 
@@ -108,37 +125,43 @@ export function getDistanceFromPath(point, pathPoints) {
 function pointToSegmentDistance(point, start, end) {
     const R = 6371; // Earth radius in km
 
-    // Convert to radians
-    const lat1 = toRad(start.lat);
-    const lon1 = toRad(start.lon);
-    const lat2 = toRad(end.lat);
-    const lon2 = toRad(end.lon);
-    const lat3 = toRad(point.lat);
-    const lon3 = toRad(point.lon);
+    // Distances to endpoints
+    const distToStart = haversineDistance(start, point);
+    const distToEnd = haversineDistance(end, point);
+    const segmentLength = haversineDistance(start, end);
 
-    // Angular distance from start to point
-    const d13 = haversineDistance(start, point) / R;
+    if (segmentLength < 0.001) return distToStart;
 
-    // Initial bearing from start to end
-    const theta13 = bearing(start, point);
-    const theta12 = bearing(start, end);
+    // 1. Check if point is "behind" Start
+    // Angle between Vector(Start->End) and Vector(Start->Point)
+    const bearingStartEnd = bearing(start, end);
+    const bearingStartPoint = bearing(start, point);
+    const angleStart = Math.abs(normalizeAngle(bearingStartPoint - bearingStartEnd));
 
-    // Cross-track distance
-    const dxt = Math.asin(Math.sin(d13) * Math.sin(theta13 - theta12)) * R;
-
-    // Along-track distance
-    const dat = Math.acos(Math.cos(d13) / Math.cos(dxt / R)) * R;
-
-    // Distance from start to end
-    const d12 = haversineDistance(start, end);
-
-    // If the perpendicular falls outside the segment, return distance to nearest endpoint
-    if (dat < 0 || dat > d12) {
-        return Math.min(
-            haversineDistance(point, start),
-            haversineDistance(point, end)
-        );
+    if (angleStart > Math.PI / 2) {
+        return distToStart;
     }
+
+    // 2. Check if point is "beyond" End
+    // Angle between Vector(End->Start) and Vector(End->Point)
+    const bearingEndStart = bearing(end, start);
+    const bearingEndPoint = bearing(end, point);
+    const angleEnd = Math.abs(normalizeAngle(bearingEndPoint - bearingEndStart));
+
+    if (angleEnd > Math.PI / 2) {
+        return distToEnd;
+    }
+
+    // 3. Fallback: Point projects onto segment -> Perpendicular distance
+    // Cross-track distance formula
+    const d13 = distToStart / R; // Angular distance Start->Point
+    const theta13 = bearingStartPoint;
+    const theta12 = bearingStartEnd;
+
+    const sinCrossTrack = Math.sin(d13) * Math.sin(theta13 - theta12);
+    // Clamp to valid range for asin to avoid NaN
+    const clampedSin = Math.max(-1, Math.min(1, sinCrossTrack));
+    const dxt = Math.asin(clampedSin) * R;
 
     return Math.abs(dxt);
 }
@@ -167,32 +190,7 @@ function bearing(start, end) {
  * @param {Array} pathPoints - Array of {lat, lon} objects (route waypoints)
  * @returns {boolean} True if point is within the path extent
  */
-export function isWithinPathExtent(point, pathPoints) {
-    if (pathPoints.length < 2) return false;
-
-    const origin = pathPoints[0];
-    const destination = pathPoints[pathPoints.length - 1];
-
-    // Calculate overall path bearing from origin to destination
-    const pathBearing = bearing(origin, destination);
-
-    // Check if point is "ahead" of origin (not behind it)
-    const bearingToPointFromOrigin = bearing(origin, point);
-    const angleDiffOrigin = Math.abs(normalizeAngle(bearingToPointFromOrigin - pathBearing));
-
-    // If angle difference > 90 degrees, point is behind origin
-    if (angleDiffOrigin > Math.PI / 2) return false;
-
-    // Check if point is "behind" destination (not ahead of it)
-    const reverseBearing = normalizeAngle(pathBearing + Math.PI);
-    const bearingToPointFromDest = bearing(destination, point);
-    const angleDiffDest = Math.abs(normalizeAngle(bearingToPointFromDest - reverseBearing));
-
-    // If angle difference > 90 degrees, point is beyond destination
-    if (angleDiffDest > Math.PI / 2) return false;
-
-    return true;
-}
+// isWithinPathExtent removed - logic integrated into getDistanceFromPath
 
 /**
  * Normalizes an angle to be within [-PI, PI]

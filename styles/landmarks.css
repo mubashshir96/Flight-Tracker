@@ -89,6 +89,7 @@
 .gm-style .gm-style-iw-d:has(.landmark-popup) {
     padding: 0 !important;
     overflow: visible !important;
+    z-index: 10000 !important;
 }
 
 /* Make landmark popups interactive */

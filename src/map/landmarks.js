@@ -5,7 +5,7 @@
 
 import { getMap } from './core.js';
 import { TIER_RADIUS_KM } from '../data/landmarks.js';
-import { createBoundingBox, isWithinBoundingBox, getDistanceFromPath, isWithinPathExtent } from '../utils/geo.js';
+import { createBoundingBox, isWithinBoundingBox, getDistanceFromPath } from '../utils/geo.js';
 
 // Track all landmark markers for cleanup
 let landmarkMarkers = [];
@@ -71,9 +71,6 @@ export function filterLandmarksInCorridor(landmarks, routeAirports) {
     const filtered = preFiltered.filter(lm => {
         const point = { lat: lm.lat, lon: lm.lon };
 
-        // Check if landmark is within path extent (not beyond endpoints)
-        if (!isWithinPathExtent(point, pathPoints)) return false;
-
         // Check distance from path
         const distanceKm = getDistanceFromPath(point, pathPoints);
         const tierRadiusKm = TIER_RADIUS_KM[lm.tier];
@@ -82,6 +79,32 @@ export function filterLandmarksInCorridor(landmarks, routeAirports) {
 
     console.log(`Corridor filter: ${filtered.length} landmarks within detection radius`);
     return filtered;
+}
+
+/**
+ * Converts a lat/lng position to screen pixel coordinates
+ * @param {google.maps.Map} map
+ * @param {{lat: number, lng: number}} latLng
+ * @returns {{x: number, y: number}|null}
+ */
+function getMarkerScreenPosition(map, latLng) {
+    try {
+        const overlay = new google.maps.OverlayView();
+        overlay.draw = function () { };
+        overlay.setMap(map);
+
+        const projection = overlay.getProjection();
+        if (!projection) return null;
+
+        const point = projection.fromLatLngToContainerPixel(
+            new google.maps.LatLng(latLng.lat, latLng.lng)
+        );
+
+        overlay.setMap(null);
+        return point ? { x: point.x, y: point.y } : null;
+    } catch {
+        return null;
+    }
 }
 
 /**
@@ -119,6 +142,9 @@ export function renderLandmarks(landmarks) {
         // Create info window with landmark details
         const infoWindow = createLandmarkInfoWindow(landmark);
 
+        // Track marker position for direction detection
+        const markerPos = pos;
+
         // Add hover events
         marker.addListener('mouseover', () => {
             if (closeTimeout) {
@@ -133,21 +159,34 @@ export function renderLandmarks(landmarks) {
             currentOpenInfoWindow = infoWindow;
         });
 
-        marker.addListener('mouseout', () => {
-            closeTimeout = setTimeout(() => {
+        marker.addListener('mouseout', (e) => {
+            // Check if mouse is moving toward popup (popup is above marker)
+            const mouseY = e.domEvent?.clientY;
+            const markerPixel = getMarkerScreenPosition(map, markerPos);
+
+            // If mouse is moving upward (toward popup), use delay
+            // If moving downward/away, close immediately
+            const movingTowardPopup = markerPixel && mouseY && mouseY < markerPixel.y;
+
+            if (movingTowardPopup) {
+                closeTimeout = setTimeout(() => {
+                    if (currentOpenInfoWindow === infoWindow) {
+                        infoWindow.close();
+                        currentOpenInfoWindow = null;
+                    }
+                }, 300);
+            } else {
+                // Moving away - close immediately
                 if (currentOpenInfoWindow === infoWindow) {
                     infoWindow.close();
                     currentOpenInfoWindow = null;
                 }
-            }, 500); // 500ms delay to allow moving to popup
+            }
         });
 
         // Add domready listener to attach events to the popup content
         infoWindow.addListener('domready', () => {
-            // Find the popup element using the class name
-            const popup = document.querySelector('.landmark-popup'); // This selector might match others, but since only one is open it usually works. 
-            // Better to match within the specific infoWindow context if possible, but IW structure is obscure.
-            // Since we close others, document.querySelector is generally safe for the one recently opened.
+            const popup = document.querySelector('.landmark-popup');
 
             if (popup) {
                 popup.addEventListener('mouseenter', () => {
@@ -161,7 +200,7 @@ export function renderLandmarks(landmarks) {
                     closeTimeout = setTimeout(() => {
                         infoWindow.close();
                         currentOpenInfoWindow = null;
-                    }, 500);
+                    }, 300);
                 });
             }
         });
@@ -226,7 +265,8 @@ function createLandmarkInfoWindow(landmark) {
     return new google.maps.InfoWindow({
         content,
         disableAutoPan: true,
-        maxWidth: 320
+        maxWidth: 320,
+        zIndex: 10000
     });
 }
 
