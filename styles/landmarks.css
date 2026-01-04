@@ -1,0 +1,137 @@
+/**
+ * Landmark Styles
+ * Popup and marker styling for landmarks
+ */
+
+/* Landmark Info Window Popup */
+.landmark-popup {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    overflow: hidden;
+    max-width: 300px;
+    box-shadow: var(--shadow);
+    pointer-events: auto !important;
+}
+
+.landmark-popup-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+}
+
+.landmark-popup-content {
+    padding: 12px 14px;
+}
+
+.landmark-popup-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0 0 8px 0;
+    line-height: 1.3;
+}
+
+.landmark-popup-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.landmark-tier {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.landmark-tier.tier-1 {
+    background: rgba(255, 215, 0, 0.2);
+    color: #FFD700;
+    border: 1px solid rgba(255, 215, 0, 0.4);
+}
+
+.landmark-tier.tier-2 {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60A5FA;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.landmark-tier.tier-3 {
+    background: rgba(148, 163, 184, 0.2);
+    color: #CBD5E1;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.landmark-popup-link {
+    display: inline-block;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.landmark-popup-link:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+/* Override Google Maps InfoWindow for landmarks */
+.gm-style .gm-style-iw-c:has(.landmark-popup),
+.gm-style .gm-style-iw-d:has(.landmark-popup) {
+    padding: 0 !important;
+    overflow: visible !important;
+}
+
+/* Make landmark popups interactive */
+.gm-style-iw:has(.landmark-popup),
+.gm-style-iw-c:has(.landmark-popup),
+.gm-style-iw-d:has(.landmark-popup),
+.gm-style-iw:has(.landmark-popup) *,
+.gm-style-iw-c:has(.landmark-popup) *,
+.gm-style-iw-d:has(.landmark-popup) * {
+    pointer-events: auto !important;
+}
+
+/* Hide close button for landmark popups */
+.gm-style-iw-c:has(.landmark-popup) button.gm-ui-hover-effect {
+    display: none !important;
+}
+
+/* Landmark description */
+.landmark-popup-description {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 0 0 10px 0;
+    line-height: 1.4;
+    max-height: 60px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+/* No Wikipedia fallback */
+.landmark-popup-no-wiki {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-bottom: 4px;
+}
+
+.landmark-popup-search {
+    color: #10B981;
+}
+
+.landmark-popup-search:hover {
+    color: #34D399;
+}

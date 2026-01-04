@@ -1,10 +1,12 @@
 
 import { loadAirports } from './data.js';
-import { loadGoogleMapsScript, initMap, drawPath } from './map.js';
+import { loadLandmarks } from './data/landmarks.js';
+import { loadGoogleMapsScript, initMap, drawPath, filterLandmarksInCorridor, renderLandmarks, clearLandmarkMarkers } from './map.js';
 import { setupAutocomplete, enableSearch, updateFlightInfo, setupLayoverControls, getLayovers, showNotification, findBestMatch, setupDragItems, collapseStops, canAddMoreStops } from './ui.js';
 
 // State
 let airports = [];
+let landmarks = [];
 
 // DOM
 const originInput = document.getElementById('origin-input');
@@ -21,6 +23,12 @@ async function main() {
     // 1. Load Data
     airports = await loadAirports();
     console.log(`Loaded ${airports.length} airports.`);
+
+    // Load landmarks (async, doesn't block UI)
+    loadLandmarks().then(lm => {
+        landmarks = lm;
+        console.log(`Loaded ${landmarks.length} unique landmarks.`);
+    });
 
     // 2. Setup UI
     setupAutocomplete(originInput, originSuggestions, airports, (selected) => {
@@ -150,6 +158,12 @@ function handleTrackFlight() {
 
     // Collapse stops to text-only view
     collapseStops();
+
+    // Render landmarks along the flight corridor
+    if (landmarks.length > 0) {
+        const filteredLandmarks = filterLandmarksInCorridor(landmarks, routeAirports);
+        renderLandmarks(filteredLandmarks);
+    }
 }
 
 // Start
