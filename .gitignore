@@ -1,6 +1,7 @@
 node_modules
 dist
 .DS_Store
+PRD.md
 .env
 .env.local
 .env.*.local
