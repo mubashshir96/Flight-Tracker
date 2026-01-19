@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - My First Sasen</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-body">
+  <div class="login-container fade-in">
+    <h2>🔑 Login</h2>
+    <form class="login-form">
+      <label>Email</label>
+      <input type="email" id="email" placeholder="Enter your email" required>
+
+      <label>Password</label>
+      <div class="password-box">
+        <input type="password" id="password" placeholder="Enter your password" required>
+        <button type="button" class="show-pass" onclick="togglePassword()">👁</button>
+      </div>
+
+      <div class="remember-box">
+        <input type="checkbox" id="remember-me">
+        <label for="remember-me">Remember Me</label>
+      </div>
+
+      <button type="submit" class="login-btn">Login</button>
+      <p class="signup-text">Don't have an account? <a href="signup.html">Sign Up</a></p>
+      <a href="index.html" class="back-home">⬅ Back to Home</a>
+    </form>
+  </div>
+
+  <script>
+    function togglePassword() {
+      const password = document.getElementById("password");
+      password.type = password.type === "password" ? "text" : "password";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedEmail = localStorage.getItem("savedEmail");
+      if (savedEmail) {
+        document.getElementById("email").value = savedEmail;
+        document.getElementById("remember-me").checked = true;
+      }
+    });
+
+    document.querySelector(".login-form").addEventListener("submit", e => {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const remember = document.getElementById("remember-me").checked;
+
+      localStorage.setItem("isLoggedIn", "true");
+
+      if (remember) {
+        localStorage.setItem("savedEmail", email);
+      } else {
+        localStorage.removeItem("savedEmail");
+      }
+
+      alert("✅ Logged in Successfully!");
+      window.location.href = "index.html";
+    });
+  </script>
+</body>
+</html>

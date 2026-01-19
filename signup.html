@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sign Up - My First Sasen</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-body">
+  <div class="login-container fade-in">
+    <h2>📝 Sign Up</h2>
+    <form class="login-form">
+      <label>Full Name</label>
+      <input type="text" placeholder="Enter your full name" required>
+
+      <label>Email</label>
+      <input type="email" placeholder="Enter your email" required>
+
+      <label>Password</label>
+      <div class="password-box">
+        <input type="password" id="signup-password" placeholder="Create password" required>
+        <button type="button" class="show-pass" onclick="togglePassword()">👁</button>
+      </div>
+
+      <label>Confirm Password</label>
+      <input type="password" id="confirm-password" placeholder="Confirm password" required>
+
+      <button type="submit" class="login-btn">Sign Up</button>
+      <p class="signup-text">Already have an account? <a href="login.html">Login</a></p>
+      <a href="index.html" class="back-home">⬅ Back to Home</a>
+    </form>
+  </div>
+
+  <script>
+    function togglePassword() {
+      const pass = document.getElementById("signup-password");
+      pass.type = pass.type === "password" ? "text" : "password";
+    }
+
+    document.querySelector(".login-form").addEventListener("submit", e => {
+      e.preventDefault();
+      const pass = document.getElementById("signup-password").value;
+      const confirm = document.getElementById("confirm-password").value;
+      if (pass !== confirm) {
+        alert("❌ Passwords do not match!");
+        return;
+      }
+      alert("✅ Account Created Successfully!");
+      window.location.href = "login.html";
+    });
+  </script>
+</body>
+</html>

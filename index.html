@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My First Sasen</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <script>
+    if (!localStorage.getItem("isLoggedIn")) {
+      window.location.href = "login.html";
+    }
+  </script>
+
+  <div id="preloader">
+    <div class="spinner"></div>
+    <p>Loading...</p>
+  </div>
+
+  <header>
+    <h1>✨ My First Sasen ✨</h1>
+  </header>
+
+  <nav>
+    <div class="nav-left">
+      <span class="site-title">🌐 My First Site</span>
+      <input type="text" id="searchInput" placeholder="Search...">
+      <button id="searchBtn">🔍</button>
+    </div>
+    <div class="nav-right">
+      <a href="#">👤 Account</a>
+      <a href="#">🛒 My Cart</a>
+      <a href="#">📞 Contact Us</a>
+      <a href="#" onclick="logout()">🚪 Logout</a>
+      <button id="dark-toggle" class="dark-btn">🌙</button>
+    </div>
+  </nav>
+
+  <main class="container" id="cardContainer">
+    <button class="card red fade-in">Voter ID Card</button>
+    <button class="card green fade-in">Aadhar Card</button>
+    <button class="card blue fade-in">Remove Background</button>
+    <button class="card red fade-in">Product 4</button>
+    <button class="card green fade-in">Product 5</button>
+    <button class="card blue fade-in">Product 6</button>
+    <button class="card red fade-in">Product 7</button>
+    <button class="card green fade-in">Product 8</button>
+    <button class="card blue fade-in">Product 9</button>
+  </main>
+
+  <script>
+    window.addEventListener("load", () => {
+      const preloader = document.getElementById("preloader");
+      preloader.classList.add("fade-out");
+      setTimeout(() => preloader.style.display = "none", 700);
+    });
+
+    document.getElementById("searchBtn").addEventListener("click", filterCards);
+    document.getElementById("searchInput").addEventListener("input", filterCards);
+
+    function filterCards() {
+      const query = document.getElementById("searchInput").value.toLowerCase();
+      const cards = document.querySelectorAll(".card");
+      cards.forEach(card => {
+        card.style.display = card.textContent.toLowerCase().includes(query) ? "block" : "none";
+      });
+    }
+
+    function logout() {
+      localStorage.removeItem("isLoggedIn");
+      window.location.href = "login.html";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (localStorage.getItem("darkMode") === "enabled") {
+        document.body.classList.add("dark-mode");
+        document.getElementById("dark-toggle").textContent = "☀️";
+      }
+    });
+
+    const toggleBtn = document.getElementById("dark-toggle");
+    toggleBtn.addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+      if (document.body.classList.contains("dark-mode")) {
+        localStorage.setItem("darkMode", "enabled");
+        toggleBtn.textContent = "☀️";
+      } else {
+        localStorage.setItem("darkMode", "disabled");
+        toggleBtn.textContent = "🌙";
+      }
+    });
+  </script>
+</body>
+</html>
